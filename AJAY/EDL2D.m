@@ -15,7 +15,7 @@ for t = D.t_start:D.dt:D.t_end
      
     [ Un Cpn Cnn iteration_DU residual_DU ] = diffuse_layer( P, S, D, F, t, Cpo, Cpn, Cno, Cnn, Uo, Un);
     
-    [Csn] = particle_Diffsion(P, F, t, Csn, Cso, Cpn, i_app );
+%     [Csn] = particle_Diffsion(P, F, t, Csn, Cso, Cpn, i_app );
     
                     
     disp([                                             ...

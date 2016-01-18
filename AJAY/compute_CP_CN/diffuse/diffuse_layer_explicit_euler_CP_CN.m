@@ -48,12 +48,13 @@ function [ Cpn Cnn ] = diffuse_layer_explicit_euler_CP_CN( P, S, D, F, t, Cpo, C
                 % CALCULATING TERM: N2
 %                 N2 = dt*m_n*(  ((Cno(j,i+1) - Cno(j,i-1))*(Un(j,i+1) - Un(j,i-1))/(4*hx*hx)) ...
 %                              + ((Cno(j+1,i) - Cno(j-1,i))*(Un(j+1,i) - Un(j-1,i))/(4*hy*hy)) );
+                N2 = dt * m_n * ((Cno(j,i) - Cno(j-1,i))*(Un(j,i) - Un(j-1,i))/hx^2 + (Cno(j,i) - Cno(j,i-1))*(Un(j,i) - Un(j,i-1))/hy^2 );
                     
                 % CALCULATING TERM: N3
                 N3 = dt*m_n*Cno(j,i)*(  ((Un(j,i+1) - 2*Un(j,i) + Un(j,i-1))/(hx*hx)) ...
                                       + ((Un(j+1,i) - 2*Un(j,i) + Un(j-1,i))/(hy*hy)) );
         
-                Cnn(j,i) = Cno(j,i) + N1 - N3;         
+                Cnn(j,i) = Cno(j,i) + N1 - N2 - N3;         
                                                             
             end
     
