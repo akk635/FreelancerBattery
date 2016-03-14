@@ -18,12 +18,12 @@ function [ P S D ] = parameters( filename )
     
     % BOUNDARY CONDITIONS: POTENTIAL
     % CHOICE 1 or 2 or 3
-    P.BC_U = 3; % 1 - Zero Dirichlet , 2,3- Neumann, non-zero Drichlet
+    P.BC_U = 4; % 1 - Zero Dirichlet , 2,3- Neumann, non-zero Drichlet
     % IN rocks there is no change in surf. charghe density (^^)
     
     % BOUNDARY CONDITION: CATION & ANION
     % CHOSE 1 --- or 2 for zero flux bnd cdn
-    P.BC_CONC = 2;  
+    P.BC_CONC = 4;  
   
     % CONSTANTS
     P.Faraday   = 95484.56;
@@ -38,8 +38,8 @@ function [ P S D ] = parameters( filename )
     P.c         = P.Faraday/(P.epsilonO*P.epsilonR); % abs. relative * rel. epsilon
    
     % SPACE DISCRETIZATION
-    P.Lx        = 16*(1e-9);              % DOMAIN LENGTH
-    P.Ly        = 16*(1e-9);              % DOMAIN LENGTH
+    P.Lx        = 24*(1e-9);              % DOMAIN LENGTH
+    P.Ly        = 24*(1e-9);              % DOMAIN LENGTH
     P.hx        = P.Lx*(1/(P.Nx+1));
     P.hy        = P.Ly*(1/(P.Ny+1));
   
@@ -63,8 +63,7 @@ function [ P S D ] = parameters( filename )
     % ALGO 2: Simple SOR Solver (U) + Explicit Euler (Cp Cn)
     % ALGO 3: Complex GS Solver (U) + Explicit Euler (Cp Cn)
     % ALGO 4: Simple  GS Solver (U) + Implicit Euler (Cp Cn)
-    % ALGO 5: Simple  CG Solver (U) + Explicit Euler (Cp Cn)
-  
+    % ALGO 5: Simple  CG Solver (U) + Explicit Euler (Cp Cn)  
     P.ALGO      = 2;
     P.max_iter  = 1e+2;       
     P.threshold = 1e-3;   
@@ -78,8 +77,11 @@ function [ P S D ] = parameters( filename )
     P.V       = P.sigma; % surf. charge density
     
     % Electrode particle properties
-    P.D_s  =  P.D_p* 10^(-3);
-    P.C_smax  =  P.Co * 10;
+    P.D_s  =  P.D_p;
+    P.C_smax  =  P.Co * 4;
+    P.Cs0 = 0.4 * P.C_smax;
+    P.k_rxn = 1.04 * 10;
+    % Potential to be -1 V(considering the influence of over potential)
     
     % DIFFUSE LAYER  
     D.Debye   = P.Debye; 

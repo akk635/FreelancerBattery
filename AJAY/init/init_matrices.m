@@ -1,5 +1,5 @@
 
-function [ Uo Un Ut Cpo Cpn Cpt Cno Cnn Cnt ] = init_matrices( P, S, D, F )
+function [ Uo Un Ut Cpo Cpn Cpt Cno Cnn Cnt Cso Csn Cst] = init_matrices( P, S, D, F )
 
   % GENERATING INITIAL CONCENTRATION CP, CN AND U
   Uo  = sparse(P.Nx+2,P.Ny+2);
@@ -25,7 +25,7 @@ function [ Uo Un Ut Cpo Cpn Cpt Cno Cnn Cnt ] = init_matrices( P, S, D, F )
   Cso = sparse(P.Nx+2, P.Ny+2);
   Csn(:,:) = 0;
   Cso(:,:) = 0;
-  Cso(F.GEO == 0) = 0.2 * P.C_smax;
-  
+  Cso(F.GEO == 0) = P.Cs0;
+  Csn(F.GEO == 0) = P.Cs0;  
   Cst = zeros(P.Nx+2,P.Ny+2,200);
 end

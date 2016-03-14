@@ -49,7 +49,15 @@ function [ Cpo Cno ] = diffuse_boundary_condition_CP_CN( P, S, D, F, t, Cpo, Cno
     % SOUTH BOUNDARY
     Cpo(Ny+2,:) = Cpo(Ny+1,:);
     Cno(Ny+2,:) = Cno(Ny+1,:);
-
+    
+    if (P.BC_CONC == 4)
+        % West dirichlet condition (continuous maintainance of conc.)
+        Cpo(:,1) = D.Co;
+        Cno(:,1) = D.Co;
+        % East neumann condition
+        Cpo(:,Nx+2) = Cpo(:,Nx+1);
+        Cno(:,Nx+2) = Cno(:,Nx+1);
+    end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % INTERNAL BOUNDARY
@@ -60,6 +68,66 @@ function [ Cpo Cno ] = diffuse_boundary_condition_CP_CN( P, S, D, F, t, Cpo, Cno
         
         for i = 2:Nx+1 
             
+            if ((F.LAYER(j,i) == F.OBJECT) & (P.BC_CONC == 4))
+                % no flux for the negatie ions
+                % positive ions transfer current in particle boundary
+                switch ( F.FLAG(j,i) )
+                         
+                    % 1 DIRECTIONS: TOTAL 4 COMBINATIONS
+                    
+                    case ( F.B_E )  % EAST BOUNDARY
+                        
+                        Cno(j,i) = Cno(j,i+1)*(1 - (m_n*(Uo(j,i+1)-Uo(j,i)))/(2*D_n))/(1 + (m_n*(Uo(j,i+1)-Uo(j,i)))/(2*D_n));                         
+     
+                    case ( F.B_W )  % WEST BOUNDARY
+ 
+                        Cno(j,i) = Cno(j,i-1)*(1 + (m_n*(Uo(j,i)-Uo(j,i-1)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j,i-1)))/(2*D_n));                         
+                                               
+                    case ( F.B_N )  % NORTH BOUNDARY
+              
+                        Cno(j,i) = Cno(j-1,i)*(1 + (m_n*(Uo(j,i)-Uo(j-1,i)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j-1,i)))/(2*D_n));                         
+                
+                    case ( F.B_S )  % SOUTH BOUNDARY
+    
+                        Cno(j,i) = Cno(j+1,i)*(1 + (m_n*(Uo(j,i)-Uo(j+1,i)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j+1,i)))/(2*D_n)); 
+                        
+                        
+                    % 2 DIRECTIONS: TOTAL 6 COMBINATIONS
+                    
+                    case ( F.B_N + F.B_E )  % NORTH EAST BOUNDARY
+      
+                        Cno(j,i) = (  Cno(j-1,i)*(1 + (m_n*(Uo(j,i)-Uo(j-1,i)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j-1,i)))/(2*D_n)) ...
+                                    + Cno(j,i+1)*(1 + (m_n*(Uo(j,i)-Uo(j,i+1)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j,i+1)))/(2*D_n)) )/2; 
+                            
+                    case ( F.B_N + F.B_W )  % NORTH WEST BOUNDARY
+     
+                        Cno(j,i) = (  Cno(j-1,i)*(1 + (m_n*(Uo(j,i)-Uo(j-1,i)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j-1,i)))/(2*D_n)) ...
+                                    + Cno(j,i-1)*(1 + (m_n*(Uo(j,i)-Uo(j,i-1)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j,i-1)))/(2*D_n)) )/2;                        
+                     
+                    case ( F.B_S + F.B_E )  % SOUTH EAST BOUNDARY
+      
+                        Cno(j,i) = (  Cno(j+1,i)*(1 + (m_n*(Uo(j,i)-Uo(j+1,i)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j+1,i)))/(2*D_n)) ...
+                                    + Cno(j,i+1)*(1 + (m_n*(Uo(j,i)-Uo(j,i+1)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j,i+1)))/(2*D_n)) )/2;                         
+                                                                         
+                    case ( F.B_S + F.B_W )  % SOUTH WEST BOUNDARY
+
+                        Cno(j,i) = (  Cno(j+1,i)*(1 + (m_n*(Uo(j,i)-Uo(j+1,i)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j+1,i)))/(2*D_n)) ...
+                                    + Cno(j,i-1)*(1 + (m_n*(Uo(j,i)-Uo(j,i-1)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j,i-1)))/(2*D_n)) )/2; 
+                                                                                                 
+                    case ( F.B_N + F.B_S )  % NORTH SOUTH BOUNDARY    
+
+                        Cno(j,i) = (  Cno(j-1,i)*(1 + (m_n*(Uo(j,i)-Uo(j-1,i)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j-1,i)))/(2*D_n)) ...                       
+                                    + Cno(j+1,i)*(1 + (m_n*(Uo(j,i)-Uo(j+1,i)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j+1,i)))/(2*D_n)) )/2;                       
+                                                                      
+                    case ( F.B_E + F.B_W )  % EAST WEST BOUNDARY    
+
+                        Cno(j,i) = (  Cno(j,i-1)*(1 + (m_n*(Uo(j,i)-Uo(j,i-1)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j,i-1)))/(2*D_n)) ...                         
+                                   +  Cno(j,i+1)*(1 + (m_n*(Uo(j,i)-Uo(j,i+1)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j,i+1)))/(2*D_n)) )/2;   
+                    otherwise
+                        
+                end
+
+            end
 
             if ( (F.LAYER(j,i) == F.OBJECT) & (P.BC_CONC == 1) )
     
@@ -275,52 +343,52 @@ function [ Cpo Cno ] = diffuse_boundary_condition_CP_CN( P, S, D, F, t, Cpo, Cno
                         
                         
                     % 3 DIRECTIONS: TOTAL 4 COMBINATIONS   
-                                                
-                    case ( F.B_N + F.B_E + F.B_W )  % NORTH EAST WEST BOUNDARY
-
-                        Cpo(j,i) = (  Cpo(j-1,i)*(1 - (m_p*(Uo(j,i)-Uo(j-1,i)))/(2*D_p))/(1 + (m_p*(Uo(j,i)-Uo(j-1,i)))/(2*D_p)) ...
-                                    + Cpo(j,i+1)*(1 - (m_p*(Uo(j,i)-Uo(j,i+1)))/(2*D_p))/(1 + (m_p*(Uo(j,i)-Uo(j,i+1)))/(2*D_p)) ...
-                                    + Cpo(j,i-1)*(1 - (m_p*(Uo(j,i)-Uo(j,i-1)))/(2*D_p))/(1 + (m_p*(Uo(j,i)-Uo(j,i-1)))/(2*D_p)) )/3; 
-                        
-                        Cno(j,i) = (  Cno(j-1,i)*(1 + (m_n*(Uo(j,i)-Uo(j-1,i)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j-1,i)))/(2*D_n)) ...
-                                    + Cno(j,i+1)*(1 + (m_n*(Uo(j,i)-Uo(j,i+1)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j,i+1)))/(2*D_n)) ...
-                                    + Cno(j,i-1)*(1 + (m_n*(Uo(j,i)-Uo(j,i-1)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j,i-1)))/(2*D_n)) )/3; 
-     
-                    case ( F.B_S + F.B_E + F.B_W )  % SOUTH EAST WEST BOUNDARY
-                        
-                        Cpo(j,i) = (  Cpo(j+1,i)*(1 - (m_p*(Uo(j,i)-Uo(j+1,i)))/(2*D_p))/(1 + (m_p*(Uo(j,i)-Uo(j+1,i)))/(2*D_p)) ...
-                                    + Cpo(j,i+1)*(1 - (m_p*(Uo(j,i)-Uo(j,i+1)))/(2*D_p))/(1 + (m_p*(Uo(j,i)-Uo(j,i+1)))/(2*D_p)) ...
-                                    + Cpo(j,i-1)*(1 - (m_p*(Uo(j,i)-Uo(j,i-1)))/(2*D_p))/(1 + (m_p*(Uo(j,i)-Uo(j,i-1)))/(2*D_p)) )/3; 
-                        
-                        Cno(j,i) = (  Cno(j+1,i)*(1 + (m_n*(Uo(j,i)-Uo(j+1,i)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j+1,i)))/(2*D_n)) ...
-                                    + Cno(j,i+1)*(1 + (m_n*(Uo(j,i)-Uo(j,i+1)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j,i+1)))/(2*D_n)) ...
-                                    + Cno(j,i-1)*(1 + (m_n*(Uo(j,i)-Uo(j,i-1)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j,i-1)))/(2*D_n)) )/3;                        
-                                                                           
-                    case ( F.B_N + F.B_S + F.B_W )  % NORTH SOUTH WEST BOUNDARY
-
-                        Cpo(j,i) = (  Cpo(j-1,i)*(1 - (m_p*(Uo(j,i)-Uo(j-1,i)))/(2*D_p))/(1 + (m_p*(Uo(j,i)-Uo(j-1,i)))/(2*D_p)) ...
-                                    + Cpo(j+1,i)*(1 - (m_p*(Uo(j,i)-Uo(j+1,i)))/(2*D_p))/(1 + (m_p*(Uo(j,i)-Uo(j+1,i)))/(2*D_p)) ...
-                                    + Cpo(j,i-1)*(1 - (m_p*(Uo(j,i)-Uo(j,i-1)))/(2*D_p))/(1 + (m_p*(Uo(j,i)-Uo(j,i-1)))/(2*D_p)) )/3; 
-                                
-                        Cno(j,i) = (  Cno(j-1,i)*(1 + (m_n*(Uo(j,i)-Uo(j-1,i)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j-1,i)))/(2*D_n)) ...
-                                    + Cno(j+1,i)*(1 + (m_n*(Uo(j,i)-Uo(j+1,i)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j+1,i)))/(2*D_n)) ...
-                                    + Cno(j,i-1)*(1 + (m_n*(Uo(j,i)-Uo(j,i-1)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j,i-1)))/(2*D_n)) )/3;                                 
-                        
-                    case ( F.B_N + F.B_S + F.B_E )  % NORTH SOUTH EAST BOUNDARY
-
-                        Cpo(j,i) = (  Cpo(j-1,i)*(1 - (m_p*(Uo(j,i)-Uo(j-1,i)))/(2*D_p))/(1 + (m_p*(Uo(j,i)-Uo(j-1,i)))/(2*D_p)) ...
-                                    + Cpo(j+1,i)*(1 - (m_p*(Uo(j,i)-Uo(j+1,i)))/(2*D_p))/(1 + (m_p*(Uo(j,i)-Uo(j+1,i)))/(2*D_p)) ...
-                                    + Cpo(j,i+1)*(1 - (m_p*(Uo(j,i)-Uo(j,i+1)))/(2*D_p))/(1 + (m_p*(Uo(j,i)-Uo(j,i+1)))/(2*D_p)) )/3; 
-
-                        Cno(j,i) = (  Cno(j-1,i)*(1 + (m_n*(Uo(j,i)-Uo(j-1,i)))/(2*D_p))/(1 - (m_n*(Uo(j,i)-Uo(j-1,i)))/(2*D_n)) ...
-                                    + Cno(j+1,i)*(1 + (m_n*(Uo(j,i)-Uo(j+1,i)))/(2*D_p))/(1 - (m_n*(Uo(j,i)-Uo(j+1,i)))/(2*D_n)) ...
-                                    + Cno(j,i+1)*(1 + (m_n*(Uo(j,i)-Uo(j,i+1)))/(2*D_p))/(1 - (m_n*(Uo(j,i)-Uo(j,i+1)))/(2*D_n)) )/3;                                 
+%                                                 
+%                     case ( F.B_N + F.B_E + F.B_W )  % NORTH EAST WEST BOUNDARY
+% 
+%                         Cpo(j,i) = (  Cpo(j-1,i)*(1 - (m_p*(Uo(j,i)-Uo(j-1,i)))/(2*D_p))/(1 + (m_p*(Uo(j,i)-Uo(j-1,i)))/(2*D_p)) ...
+%                                     + Cpo(j,i+1)*(1 - (m_p*(Uo(j,i)-Uo(j,i+1)))/(2*D_p))/(1 + (m_p*(Uo(j,i)-Uo(j,i+1)))/(2*D_p)) ...
+%                                     + Cpo(j,i-1)*(1 - (m_p*(Uo(j,i)-Uo(j,i-1)))/(2*D_p))/(1 + (m_p*(Uo(j,i)-Uo(j,i-1)))/(2*D_p)) )/3; 
+%                         
+%                         Cno(j,i) = (  Cno(j-1,i)*(1 + (m_n*(Uo(j,i)-Uo(j-1,i)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j-1,i)))/(2*D_n)) ...
+%                                     + Cno(j,i+1)*(1 + (m_n*(Uo(j,i)-Uo(j,i+1)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j,i+1)))/(2*D_n)) ...
+%                                     + Cno(j,i-1)*(1 + (m_n*(Uo(j,i)-Uo(j,i-1)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j,i-1)))/(2*D_n)) )/3; 
+%      
+%                     case ( F.B_S + F.B_E + F.B_W )  % SOUTH EAST WEST BOUNDARY
+%                         
+%                         Cpo(j,i) = (  Cpo(j+1,i)*(1 - (m_p*(Uo(j,i)-Uo(j+1,i)))/(2*D_p))/(1 + (m_p*(Uo(j,i)-Uo(j+1,i)))/(2*D_p)) ...
+%                                     + Cpo(j,i+1)*(1 - (m_p*(Uo(j,i)-Uo(j,i+1)))/(2*D_p))/(1 + (m_p*(Uo(j,i)-Uo(j,i+1)))/(2*D_p)) ...
+%                                     + Cpo(j,i-1)*(1 - (m_p*(Uo(j,i)-Uo(j,i-1)))/(2*D_p))/(1 + (m_p*(Uo(j,i)-Uo(j,i-1)))/(2*D_p)) )/3; 
+%                         
+%                         Cno(j,i) = (  Cno(j+1,i)*(1 + (m_n*(Uo(j,i)-Uo(j+1,i)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j+1,i)))/(2*D_n)) ...
+%                                     + Cno(j,i+1)*(1 + (m_n*(Uo(j,i)-Uo(j,i+1)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j,i+1)))/(2*D_n)) ...
+%                                     + Cno(j,i-1)*(1 + (m_n*(Uo(j,i)-Uo(j,i-1)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j,i-1)))/(2*D_n)) )/3;                        
+%                                                                            
+%                     case ( F.B_N + F.B_S + F.B_W )  % NORTH SOUTH WEST BOUNDARY
+% 
+%                         Cpo(j,i) = (  Cpo(j-1,i)*(1 - (m_p*(Uo(j,i)-Uo(j-1,i)))/(2*D_p))/(1 + (m_p*(Uo(j,i)-Uo(j-1,i)))/(2*D_p)) ...
+%                                     + Cpo(j+1,i)*(1 - (m_p*(Uo(j,i)-Uo(j+1,i)))/(2*D_p))/(1 + (m_p*(Uo(j,i)-Uo(j+1,i)))/(2*D_p)) ...
+%                                     + Cpo(j,i-1)*(1 - (m_p*(Uo(j,i)-Uo(j,i-1)))/(2*D_p))/(1 + (m_p*(Uo(j,i)-Uo(j,i-1)))/(2*D_p)) )/3; 
+%                                 
+%                         Cno(j,i) = (  Cno(j-1,i)*(1 + (m_n*(Uo(j,i)-Uo(j-1,i)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j-1,i)))/(2*D_n)) ...
+%                                     + Cno(j+1,i)*(1 + (m_n*(Uo(j,i)-Uo(j+1,i)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j+1,i)))/(2*D_n)) ...
+%                                     + Cno(j,i-1)*(1 + (m_n*(Uo(j,i)-Uo(j,i-1)))/(2*D_n))/(1 - (m_n*(Uo(j,i)-Uo(j,i-1)))/(2*D_n)) )/3;                                 
+%                         
+%                     case ( F.B_N + F.B_S + F.B_E )  % NORTH SOUTH EAST BOUNDARY
+% 
+%                         Cpo(j,i) = (  Cpo(j-1,i)*(1 - (m_p*(Uo(j,i)-Uo(j-1,i)))/(2*D_p))/(1 + (m_p*(Uo(j,i)-Uo(j-1,i)))/(2*D_p)) ...
+%                                     + Cpo(j+1,i)*(1 - (m_p*(Uo(j,i)-Uo(j+1,i)))/(2*D_p))/(1 + (m_p*(Uo(j,i)-Uo(j+1,i)))/(2*D_p)) ...
+%                                     + Cpo(j,i+1)*(1 - (m_p*(Uo(j,i)-Uo(j,i+1)))/(2*D_p))/(1 + (m_p*(Uo(j,i)-Uo(j,i+1)))/(2*D_p)) )/3; 
+% 
+%                         Cno(j,i) = (  Cno(j-1,i)*(1 + (m_n*(Uo(j,i)-Uo(j-1,i)))/(2*D_p))/(1 - (m_n*(Uo(j,i)-Uo(j-1,i)))/(2*D_n)) ...
+%                                     + Cno(j+1,i)*(1 + (m_n*(Uo(j,i)-Uo(j+1,i)))/(2*D_p))/(1 - (m_n*(Uo(j,i)-Uo(j+1,i)))/(2*D_n)) ...
+%                                     + Cno(j,i+1)*(1 + (m_n*(Uo(j,i)-Uo(j,i+1)))/(2*D_p))/(1 - (m_n*(Uo(j,i)-Uo(j,i+1)))/(2*D_n)) )/3;                                 
                                 
                     otherwise
                         
                 end % END OF SWITCH
                 
-            end % END OF IF            
+            end % END OF IF                        
                         
         end % END OF FOR
 

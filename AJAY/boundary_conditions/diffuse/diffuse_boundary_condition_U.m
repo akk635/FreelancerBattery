@@ -29,8 +29,8 @@ function [ Uo ] = diffuse_boundary_condition_U( P, S, D, F, t, Uo )
     % WEST: DIRICHLET 
     Uo(:,1) = P.U_ext/P.Ut;         
     
-    % EAST: NEUMANN + dirichlet zero potential (Robin boundary cdn)
-    Uo(:,Nx+2) = 0;
+    % EAST: NEUMANN Boundary condition
+    Uo(:,Nx+2) = Uo(:,Nx+1);
     
     % NORTH: NEUMANN
     Uo(1,:) = Uo(2,:);
@@ -236,7 +236,11 @@ function [ Uo ] = diffuse_boundary_condition_U( P, S, D, F, t, Uo )
                         
                 end % END OF SWITCH
               
-            end            
+            end
+            if ((F.LAYER(j,i) == F.OBJECT) & (P.BC_U == 4) )
+                Uo(j,i) = -P.U_ext/P.Ut;
+            end
+            
         end
 
     end
